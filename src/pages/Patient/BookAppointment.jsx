@@ -20,8 +20,10 @@ const BookAppointment = () => {
   const [selectedDate, setSelectedDate] = useState("");
   const [selectedTime, setSelectedTime] = useState("");
   const [reason, setReason] = useState("");
+
+  // appointments stored doctor-wise (object)
   const [appointments, setAppointments] = useState(
-    JSON.parse(localStorage.getItem("appointments")) || []
+    JSON.parse(localStorage.getItem("appointments")) || {}
   );
 
   const handleSubmit = (e) => {
@@ -32,17 +34,22 @@ const BookAppointment = () => {
     }
 
     const newAppointment = {
-      doctor: selectedDoctor,
       date: selectedDate,
       time: selectedTime,
       reason,
     };
 
-    const updatedAppointments = [...appointments, newAppointment];
+    // ✅ Add to correct doctor only
+    const updatedAppointments = {
+      ...appointments,
+      [selectedDoctor]: [...(appointments[selectedDoctor] || []), newAppointment],
+    };
+
     setAppointments(updatedAppointments);
     localStorage.setItem("appointments", JSON.stringify(updatedAppointments));
 
-    alert("Appointment booked successfully!");
+    alert(`Appointment booked with ${selectedDoctor}!`);
+
     setSelectedDoctor("");
     setSelectedDate("");
     setSelectedTime("");
@@ -165,28 +172,32 @@ const BookAppointment = () => {
 
       {/* Appointments List */}
       <h3 style={{ marginTop: "30px", color: "#2c3e50" }}>📋 My Appointments</h3>
-      <ul style={{ listStyle: "none", padding: 0 }}>
-        {appointments.length === 0 ? (
-          <li style={{ color: "#888" }}>No appointments yet.</li>
-        ) : (
-          appointments.map((app, index) => (
-            <li
-              key={index}
-              style={{
-                background: "#fff",
-                marginBottom: "12px",
-                padding: "12px 15px",
-                borderRadius: "8px",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-              }}
-            >
-              <b style={{ color: "#2980b9" }}>{app.doctor}</b> <br />
-              📅 {app.date} | ⏰ {app.time} <br />
-              📝 Reason: {app.reason}
-            </li>
-          ))
-        )}
-      </ul>
+      {Object.keys(appointments).length === 0 ? (
+        <p style={{ color: "#888" }}>No appointments yet.</p>
+      ) : (
+        Object.entries(appointments).map(([doctor, apps]) => (
+          <div key={doctor} style={{ marginBottom: "20px" }}>
+            <h4 style={{ color: "#2980b9" }}>{doctor}</h4>
+            <ul style={{ listStyle: "none", padding: 0 }}>
+              {apps.map((app, index) => (
+                <li
+                  key={index}
+                  style={{
+                    background: "#fff",
+                    marginBottom: "12px",
+                    padding: "12px 15px",
+                    borderRadius: "8px",
+                    boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+                  }}
+                >
+                  📅 {app.date} | ⏰ {app.time} <br />
+                  📝 Reason: {app.reason}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))
+      )}
     </div>
   );
 };
